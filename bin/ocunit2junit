@@ -65,6 +65,9 @@ class ReportParser
       end
       
       case piped_row
+
+	when /Test Suite '(\S+)\.xctest'.*started at\s+.*/
+          handle_start_target($1)
         
         when /Test Suite '(\S+)'.*started at\s+(.*)/
           t = Time.parse($2.to_s)
@@ -93,7 +96,7 @@ class ReportParser
           test_suite = $2
           error_message = $4
 	  test_case = $3
-	        handle_test_error(test_suite,test_case,error_message,error_location)
+          handle_test_error(test_suite,test_case,error_message,error_location)
 	        
         when /Test Case '-\[\S+ (\S+)\]' failed \((\S+) seconds\)/
           test_case = $1
@@ -113,6 +116,10 @@ class ReportParser
       end
     end
   end
+
+  def handle_start_target(target_name)
+    @target_name = target_name
+  end
   
   def handle_start_test_suite(start_time)
     @total_failed_test_cases = 0
@@ -125,12 +132,12 @@ class ReportParser
 
   def handle_end_test_suite(test_name,end_time)
     unless @ended_current_test_suite
-      current_file = File.open("#{TEST_REPORTS_FOLDER}/TEST-#{test_name}.xml", 'w')
+      current_file = File.open("#{TEST_REPORTS_FOLDER}/TEST-#{@target_name}-#{test_name}.xml", 'w')
       host_name = string_to_xml Socket.gethostname
       test_name = string_to_xml test_name
       test_duration = (end_time - @cur_start_time).to_s
       total_tests = @total_failed_test_cases + @total_passed_test_cases
-      suite_info = '<testsuite errors="0" failures="'+@total_failed_test_cases.to_s+'" hostname="'+host_name+'" name="'+test_name+'" tests="'+total_tests.to_s+'" time="'+test_duration.to_s+'" timestamp="'+end_time.to_s+'">'
+      suite_info = '<testsuite errors="0" failures="'+@total_failed_test_cases.to_s+'" hostname="'+host_name+'" name="'+@target_name+'_'+test_name+'" tests="'+total_tests.to_s+'" time="'+test_duration.to_s+'" timestamp="'+end_time.to_s+'">\n'
       current_file << "<?xml version='1.0' encoding='UTF-8' ?>\n"
       current_file << suite_info
       @tests_results.each do |t|
