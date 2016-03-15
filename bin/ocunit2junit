@@ -137,7 +137,7 @@ class ReportParser
       test_name = string_to_xml test_name
       test_duration = (end_time - @cur_start_time).to_s
       total_tests = @total_failed_test_cases + @total_passed_test_cases
-      suite_info = '<testsuite errors="0" failures="'+@total_failed_test_cases.to_s+'" hostname="'+host_name+'" name="'+@target_name+'_'+test_name+'" tests="'+total_tests.to_s+'" time="'+test_duration.to_s+'" timestamp="'+end_time.to_s+'">\n'
+      suite_info = '<testsuite errors="0" failures="'+@total_failed_test_cases.to_s+'" hostname="'+host_name+'" name="'+@target_name+'" tests="'+total_tests.to_s+'" time="'+test_duration.to_s+'" timestamp="'+end_time.to_s+'">\n'
       current_file << "<?xml version='1.0' encoding='UTF-8' ?>\n"
       current_file << suite_info
       @tests_results.each do |t|
