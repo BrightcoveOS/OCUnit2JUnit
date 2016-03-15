@@ -20,7 +20,6 @@
 #
 # Where to put the XML-files from your unit tests
 TEST_REPORTS_FOLDER = ENV.has_key?('TEST_REPORTS_FOLDER') ? ENV['TEST_REPORTS_FOLDER'] : "test-reports"
-SUPPORT_KIWI = ENV.has_key?('SUPPORT_KIWI') ? ENV['SUPPORT_KIWI'] : true
 #
 #
 # Don't edit below this line
@@ -89,7 +88,7 @@ class ReportParser
           @last_description = nil
 
         when /Test Case '-\[\S+\s+(\S+)\]' passed \((.*) seconds\)/
-          test_case = get_test_case_name($1, @last_description)
+          test_case = $1
           test_case_duration = $2.to_f
           handle_test_passed(test_case,test_case_duration)
 
@@ -97,11 +96,11 @@ class ReportParser
           error_location = $1
           test_suite = $2
           error_message = $4
-	        test_case = get_test_case_name($3, description)
+	  test_case = $3
 	        handle_test_error(test_suite,test_case,error_message,error_location)
 	        
         when /Test Case '-\[\S+ (\S+)\]' failed \((\S+) seconds\)/
-          test_case = get_test_case_name($1, @last_description)
+          test_case = $1
           test_case_duration = $2.to_f
           handle_test_failed(test_case,test_case_duration)
 	        
@@ -183,24 +182,6 @@ class ReportParser
   def handle_test_failed(test_case,test_case_duration) 
     @total_failed_test_cases +=1
     @tests_results[test_case] = test_case_duration
-  end
-
-  def get_test_case_name(test_case, description)
-    # Kiwi 1.x
-    if SUPPORT_KIWI && test_case == "example" && description
-      description
-    # Kiwi 2.x
-    elsif SUPPORT_KIWI && test_case =~ /(.+_)+(Should.+)(_.+)*/
-      test_case.gsub(/([A-Z])([A-Z][a-z]+)/, ' \1 \2')
-               .gsub(/([A-Z][a-z]+)/, ' \1')
-               .gsub(/([A-Z][A-Z]+)/, ' \1')
-               .gsub(/([^A-Za-z ]+)/, ' \1')
-               .gsub(/\s+/, ' ')
-               .split(" _ ")[1..-1].join(", ")
-               .downcase.capitalize
-    else
-      test_case
-    end
   end
  
 end
